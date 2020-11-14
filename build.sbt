@@ -13,6 +13,7 @@ scalaVersion := "2.13.3"
 val catsCoreVersion = "2.2.0"
 val catsEffectsVersion = "2.2.0"
 val catsScalacheckVersion = "0.3.0"
+val enumeratumVersion = "1.6.1"
 val kittensVersion = "2.2.0"
 val newtypeVersion = "0.4.4"
 val refinedVersion = "0.9.17"
@@ -24,6 +25,7 @@ libraryDependencies ++= Seq(
   "org.typelevel" %% "cats-core" % catsCoreVersion,
   "org.typelevel" %% "cats-effect" % catsEffectsVersion,
   "io.chrisdavenport" %% "cats-scalacheck" % catsScalacheckVersion % Test,
+  "com.beachape" %% "enumeratum-cats" % enumeratumVersion,
   "org.typelevel" %% "kittens" % kittensVersion,
   "io.estatico" %% "newtype" % newtypeVersion,
   "eu.timepit" %% "refined" % refinedVersion,
