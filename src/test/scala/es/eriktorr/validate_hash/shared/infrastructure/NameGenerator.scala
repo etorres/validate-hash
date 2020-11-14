@@ -1,9 +1,10 @@
 package es.eriktorr.validate_hash.shared.infrastructure
 
-import es.eriktorr.validate_hash.domain.user._
 import org.scalacheck._
 
-object UserNameGenerator {
+import scala.util.Random
+
+object NameGenerator {
   private[this] val names = List(
     "Olivia",
     "Oliver",
@@ -47,6 +48,5 @@ object UserNameGenerator {
     "Evelyn"
   )
 
-  @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
-  val userNameGen: Gen[UserName] = Gen.oneOf(names).map(UserName.fromString(_).toOption.get)
+  def distinctNameGen(n: Int): Gen[List[String]] = Gen.const(Random.shuffle(names).take(n))
 }

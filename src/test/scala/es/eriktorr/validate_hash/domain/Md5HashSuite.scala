@@ -8,7 +8,7 @@ import es.eriktorr.validate_hash.domain.password.Password._
 import weaver.SimpleIOSuite
 
 object Md5HashSuite extends SimpleIOSuite {
-  simpleTest("") {
+  simpleTest("Compute MD5 hash from text") {
     for {
       (password, expected) <- (
         IO.fromEither(Password.fromString[ClearText]("secret")),
