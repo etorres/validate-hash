@@ -33,4 +33,24 @@ object ValidateAccess {
         }
       } yield AccessDecision(userName, access)
     }
+
+  def impl2[F[_]: Sync](
+    vault: Vault[F],
+    hashFunction: Password[ClearText] => Either[InvalidPassword, Password[CipherText]]
+  ): ValidateAccess[F] = {
+    def validated(password: Password[ClearText])(f: Password[CipherText] => F[Access]) = {
+      val F = Sync[F]
+      F.fromEither(hashFunction(password)).flatMap(f)
+    }
+
+    (userName: UserName, password: Password[ClearText]) =>
+      validated(password) { actualHash =>
+        vault
+          .passwordFor(userName)
+          .map {
+            case Some(expectedHash) => if (expectedHash === actualHash) Granted else Forbidden
+            case None => Forbidden
+          }
+      }.map(AccessDecision(userName, _))
+  }
 }
