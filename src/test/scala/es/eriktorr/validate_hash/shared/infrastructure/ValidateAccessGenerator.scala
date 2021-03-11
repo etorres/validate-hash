@@ -1,5 +1,7 @@
 package es.eriktorr.validate_hash.shared.infrastructure
 
+import cats.data.Nested
+import cats.implicits._
 import es.eriktorr.validate_hash.domain.error._
 import es.eriktorr.validate_hash.domain.password.Password._
 import es.eriktorr.validate_hash.domain.password._
@@ -7,13 +9,14 @@ import es.eriktorr.validate_hash.domain.user._
 import es.eriktorr.validate_hash.shared.infrastructure.GenericGenerators.nonBlankStringOfAtMost
 import es.eriktorr.validate_hash.shared.infrastructure.NameGenerator.distinctNameGen
 import org.scalacheck._
+import org.scalacheck.cats.implicits._
 
 object ValidateAccessGenerator {
   type UserNameWithPassword = (UserName, (Password[ClearText], Password[CipherText]))
 
   @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
   def distinctUserNameGen(n: Int): Gen[List[UserName]] =
-    distinctNameGen(n).map(_.map(UserName.fromString(_).toOption.get))
+    Nested(distinctNameGen(n)).map(UserName.fromString(_).toOption.get).value
 
   @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
   def passwordGen(
