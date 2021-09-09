@@ -1,8 +1,10 @@
-package es.eriktorr.validate_hash.domain
+package es.eriktorr.validate_hash
+package domain
+
+import domain.error._
 
 import cats._
 import cats.implicits._
-import es.eriktorr.validate_hash.domain.error._
 import eu.timepit.refined._
 import eu.timepit.refined.predicates.all._
 import eu.timepit.refined.types.all._

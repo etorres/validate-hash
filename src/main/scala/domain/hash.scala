@@ -1,10 +1,11 @@
-package es.eriktorr.validate_hash.domain
+package es.eriktorr.validate_hash
+package domain
+
+import domain.error._
+import domain.password.Password._
+import domain.password._
 
 import java.security.MessageDigest
-
-import es.eriktorr.validate_hash.domain.error._
-import es.eriktorr.validate_hash.domain.password.Password._
-import es.eriktorr.validate_hash.domain.password._
 
 object hash {
   val md5Hash: Password[ClearText] => Either[InvalidPassword, Password[CipherText]] =

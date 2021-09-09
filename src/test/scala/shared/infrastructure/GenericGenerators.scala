@@ -1,8 +1,10 @@
-package es.eriktorr.validate_hash.shared.infrastructure
+package es.eriktorr.validate_hash
+package shared.infrastructure
 
-import org.scalacheck._
+import org.scalacheck.Gen
 
 object GenericGenerators {
+
   def stringOfAtMost(maxLength: Int, charGen: Gen[Char]): Gen[String] =
     for {
       length <- Gen.choose(1, maxLength)
@@ -11,4 +13,5 @@ object GenericGenerators {
 
   def nonBlankStringOfAtMost(maxLength: Int): Gen[String] =
     stringOfAtMost(maxLength, Gen.alphaNumChar)
+
 }

@@ -1,14 +1,16 @@
-package es.eriktorr.validate_hash.application
+package es.eriktorr.validate_hash
+package application
+
+import domain.access.Access._
+import domain.access._
+import domain.error.InvalidPassword
+import domain.password.Password._
+import domain.password._
+import domain.user._
+import domain.vault._
 
 import cats.effect._
 import cats.implicits._
-import es.eriktorr.validate_hash.domain.access.Access._
-import es.eriktorr.validate_hash.domain.access._
-import es.eriktorr.validate_hash.domain.error.InvalidPassword
-import es.eriktorr.validate_hash.domain.password.Password._
-import es.eriktorr.validate_hash.domain.password._
-import es.eriktorr.validate_hash.domain.user._
-import es.eriktorr.validate_hash.domain.vault._
 
 trait ValidateAccess[F[_]] {
   def grantAccessIdentifiedWith(

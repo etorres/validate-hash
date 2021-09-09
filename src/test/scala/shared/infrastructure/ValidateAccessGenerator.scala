@@ -1,14 +1,16 @@
-package es.eriktorr.validate_hash.shared.infrastructure
+package es.eriktorr.validate_hash
+package shared.infrastructure
+
+import domain.error.InvalidPassword
+import domain.password.Password
+import domain.password.Password._
+import domain.user.UserName
+import shared.infrastructure.GenericGenerators.nonBlankStringOfAtMost
+import shared.infrastructure.NameGenerator.distinctNameGen
 
 import cats.data.Nested
 import cats.implicits._
-import es.eriktorr.validate_hash.domain.error._
-import es.eriktorr.validate_hash.domain.password.Password._
-import es.eriktorr.validate_hash.domain.password._
-import es.eriktorr.validate_hash.domain.user._
-import es.eriktorr.validate_hash.shared.infrastructure.GenericGenerators.nonBlankStringOfAtMost
-import es.eriktorr.validate_hash.shared.infrastructure.NameGenerator.distinctNameGen
-import org.scalacheck._
+import org.scalacheck.Gen
 import org.scalacheck.cats.implicits._
 
 object ValidateAccessGenerator {
@@ -37,4 +39,5 @@ object ValidateAccessGenerator {
       userName <- userNameGen
       (password, passwordHash) <- passwordGen
     } yield (userName, (password, passwordHash))
+
 }

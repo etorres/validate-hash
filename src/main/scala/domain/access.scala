@@ -1,7 +1,9 @@
-package es.eriktorr.validate_hash.domain
+package es.eriktorr.validate_hash
+package domain
+
+import domain.user._
 
 import enumeratum._
-import es.eriktorr.validate_hash.domain.user._
 
 object access {
   final case class AccessDecision(userName: UserName, access: Access)

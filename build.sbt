@@ -4,23 +4,26 @@ import sbt._
 import wartremover.Wart
 import wartremover.WartRemover.autoImport._
 
-organization := "es.eriktorr"
 name := "validate-hash"
-version := (version in ThisBuild).value
 
-scalaVersion := "2.13.3"
+ThisBuild / organization := "es.eriktorr"
+ThisBuild / version := "1.0.0"
+ThisBuild / scalaVersion := "2.13.6"
 
-val catsCoreVersion = "2.2.0"
-val catsEffectsVersion = "2.2.0"
-val catsScalacheckVersion = "0.3.0"
-val enumeratumVersion = "1.6.1"
-val kittensVersion = "2.2.0"
+ThisBuild / idePackagePrefix := Some("es.eriktorr.validate_hash")
+Global / excludeLintKeys += idePackagePrefix
+
+val catsCoreVersion = "2.6.1"
+val catsEffectsVersion = "2.5.3"
+val catsScalacheckVersion = "0.3.1"
+val enumeratumVersion = "1.7.0"
+val kittensVersion = "2.3.2"
 val newtypeVersion = "0.4.4"
-val refinedVersion = "0.9.17"
-val weaverVersion = "0.5.0"
+val refinedVersion = "0.9.27"
+val weaverVersion = "0.6.6"
 
-libraryDependencies ++= Seq(
-  compilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full),
+ThisBuild / libraryDependencies ++= Seq(
+  compilerPlugin("org.typelevel" %% "kind-projector" % "0.13.2" cross CrossVersion.full),
   compilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1" cross CrossVersion.binary),
   "org.typelevel" %% "cats-core" % catsCoreVersion,
   "org.typelevel" %% "cats-effect" % catsEffectsVersion,
@@ -30,13 +33,18 @@ libraryDependencies ++= Seq(
   "io.estatico" %% "newtype" % newtypeVersion,
   "eu.timepit" %% "refined" % refinedVersion,
   "eu.timepit" %% "refined-scalacheck" % refinedVersion % Test,
-  "com.disneystreaming" %% "weaver-framework" % weaverVersion % Test,
+  "com.disneystreaming" %% "weaver-cats" % weaverVersion % Test,
   "com.disneystreaming" %% "weaver-scalacheck" % weaverVersion % Test
 )
 
-dependencyOverrides += "org.typelevel" %% "cats-core" % catsCoreVersion
+ThisBuild / libraryDependencySchemes ++= Seq(
+  "org.typelevel" %% "cats-core" % VersionScheme.EarlySemVer,
+  "org.typelevel" %% "cats-effect" % VersionScheme.EarlySemVer,
+  "co.fs2" %% "f2s-core" % VersionScheme.EarlySemVer,
+  "org.scalacheck" %% "scalacheck" % VersionScheme.EarlySemVer
+)
 
-scalacOptions ++= Seq(
+ThisBuild / scalacOptions ++= Seq(
   "-encoding",
   "utf8",
   "-Xfatal-warnings",
@@ -50,7 +58,7 @@ scalacOptions ++= Seq(
   "-feature"
 )
 
-javacOptions ++= Seq(
+ThisBuild / javacOptions ++= Seq(
   "-g:none",
   "-source",
   "11",
@@ -60,7 +68,7 @@ javacOptions ++= Seq(
   "UTF-8"
 )
 
-scalafmtOnCompile := true
+ThisBuild / scalafmtOnCompile := true
 
 val warts: Seq[Wart] = Warts.allBut(
   Wart.Any,
@@ -73,7 +81,7 @@ val warts: Seq[Wart] = Warts.allBut(
   Wart.ImplicitConversion // @newtype
 )
 
-wartremoverErrors in (Compile, compile) ++= warts
-wartremoverErrors in (Test, compile) ++= warts
+Compile / compile / wartremoverErrors ++= warts
+Test / compile / wartremoverErrors ++= warts
 
-testFrameworks += new TestFramework("weaver.framework.TestFramework")
+ThisBuild / testFrameworks += new TestFramework("weaver.framework.CatsEffect")

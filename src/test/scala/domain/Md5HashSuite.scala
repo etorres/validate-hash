@@ -1,14 +1,17 @@
-package es.eriktorr.validate_hash.domain
+package es.eriktorr.validate_hash
+package domain
+
+import domain.hash.md5Hash
+import domain.password.Password._
+import domain.password._
 
 import cats.effect._
 import cats.implicits._
-import es.eriktorr.validate_hash.domain.hash.md5Hash
-import es.eriktorr.validate_hash.domain.password._
-import es.eriktorr.validate_hash.domain.password.Password._
 import weaver.SimpleIOSuite
 
 object Md5HashSuite extends SimpleIOSuite {
-  simpleTest("Compute MD5 hash from text") {
+
+  test("Compute MD5 hash from text") {
     for {
       (password, expected) <- (
         IO.fromEither(Password.fromString[ClearText]("secret")),
@@ -17,4 +20,5 @@ object Md5HashSuite extends SimpleIOSuite {
       hash <- IO.fromEither(md5Hash(password))
     } yield expect(hash == expected)
   }
+
 }

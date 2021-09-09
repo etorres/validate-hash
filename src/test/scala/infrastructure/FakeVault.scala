@@ -1,12 +1,14 @@
-package es.eriktorr.validate_hash.infrastructure
+package es.eriktorr.validate_hash
+package infrastructure
+
+import domain.password.Password._
+import domain.password._
+import domain.user._
+import domain.vault._
 
 import cats.effect._
 import cats.effect.concurrent.Ref
 import cats.implicits._
-import es.eriktorr.validate_hash.domain.password.Password._
-import es.eriktorr.validate_hash.domain.password._
-import es.eriktorr.validate_hash.domain.user._
-import es.eriktorr.validate_hash.domain.vault._
 
 final case class VaultState(users: Map[UserName, (Password[ClearText], Password[CipherText])])
 
@@ -17,6 +19,7 @@ final class FakeVault[F[_]: Sync] private[infrastructure] (val ref: Ref[F, Vault
 }
 
 object FakeVault {
+
   def impl[F[_]: Sync](ref: Ref[F, VaultState]): Vault[F] = new FakeVault[F](ref)
 
   def initialState: VaultState =
@@ -40,4 +43,5 @@ object FakeVault {
         ).tupled
       } yield (userName, (password, hash))).toOption.get
   }
+
 }

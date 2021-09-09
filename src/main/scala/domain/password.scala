@@ -1,8 +1,10 @@
-package es.eriktorr.validate_hash.domain
+package es.eriktorr.validate_hash
+package domain
+
+import domain.error._
 
 import cats._
 import cats.implicits._
-import es.eriktorr.validate_hash.domain.error._
 import eu.timepit.refined._
 import eu.timepit.refined.predicates.all._
 import eu.timepit.refined.types.all._
@@ -10,9 +12,11 @@ import io.estatico.newtype._
 import io.estatico.newtype.macros.newtype
 import io.estatico.newtype.ops._
 
+import java.nio.charset.StandardCharsets
+
 object password {
   @newtype class Password[A <: Password.Format](val unPassword: NonEmptyString) {
-    def getBytes: Array[Byte] = unPassword.value.getBytes()
+    def getBytes: Array[Byte] = unPassword.value.getBytes(StandardCharsets.UTF_8)
   }
 
   object Password {
