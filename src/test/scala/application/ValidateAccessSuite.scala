@@ -3,7 +3,6 @@ package application
 
 import domain.access.Access._
 import domain.access._
-import domain.error._
 import domain.hash.md5Hash
 import domain.password.Password._
 import domain.password._
@@ -40,27 +39,29 @@ object ValidateAccessSuite extends SimpleIOSuite with Checkers {
     implicit val showTestCase: Show[TestCase] = semiauto.show
   }
 
-  private[this] val idHash: Password[ClearText] => Either[InvalidPassword, Password[CipherText]] =
-    (password: Password[ClearText]) => Password.fromString[CipherText](password.unPassword.value)
+  private[this] val validPasswordGen = passwordGen(md5Hash)
+  private[this] val invalidPasswordGen = passwordGen((password: Password[ClearText]) =>
+    Password.fromString[CipherText](password.unPassword.value)
+  )
 
   private[this] val gen = for {
     userNames <- distinctUserNameGen(7)
     (grantedUserNames, otherUserNames) = userNames.splitAt(3)
     (forbiddenUserNames, invalidUserNames) = otherUserNames.splitAt(2)
     grantedUsers <- grantedUserNames.traverse { userName =>
-      userNameWithPasswordGen(Gen.const(userName), passwordGen(md5Hash))
+      userNameWithPasswordGen(Gen.const(userName), validPasswordGen)
     }
     forbiddenUsers <- forbiddenUserNames.traverse { userName =>
-      userNameWithPasswordGen(Gen.const(userName), passwordGen(idHash))
+      userNameWithPasswordGen(Gen.const(userName), invalidPasswordGen)
     }
     invalidUser <- invalidUserNames.traverse { userName =>
-      userNameWithPasswordGen(Gen.const(userName), passwordGen(md5Hash))
+      userNameWithPasswordGen(Gen.const(userName), validPasswordGen)
     }
   } yield TestCase(
-    NonEmptyList.fromListUnsafe(grantedUsers),
-    NonEmptyList.fromListUnsafe(forbiddenUsers),
-    (grantedUsers ++ forbiddenUsers).toMap,
-    NonEmptyList.fromListUnsafe(invalidUser)
+    grantedUsers = NonEmptyList.fromListUnsafe(grantedUsers),
+    forbiddenUsers = NonEmptyList.fromListUnsafe(forbiddenUsers),
+    allValidUsers = (grantedUsers ++ forbiddenUsers).toMap,
+    invalidUserNames = NonEmptyList.fromListUnsafe(invalidUser)
   )
 
   def expecting(
@@ -71,9 +72,15 @@ object ValidateAccessSuite extends SimpleIOSuite with Checkers {
     for {
       vaultStateRef <- Ref.of[IO, VaultState](VaultState(allValidUsers))
       validateAccess = ValidateAccess.impl[IO](FakeVault.impl[IO](vaultStateRef), md5Hash)
-      (userName, (password, _)) = targetUsers.head
-      result <- validateAccess.grantAccessIdentifiedWith(userName, password)
-    } yield expect(result == AccessDecision(userName, access))
+      result <- targetUsers.traverse {
+        case (userName, (password, _)) =>
+          validateAccess.grantAccessIdentifiedWith(userName, password)
+      }
+      expected = targetUsers.map {
+        case (userName, _) =>
+          AccessDecision(userName, access)
+      }
+    } yield expect(result === expected)
 
   test("Grant access to users authenticated with password") {
     forall(gen) {

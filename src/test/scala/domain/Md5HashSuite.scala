@@ -18,7 +18,7 @@ object Md5HashSuite extends SimpleIOSuite {
         IO.fromEither(Password.fromString[CipherText]("5ebe2294ecd0e0f08eab7690d2a6ee69"))
       ).tupled
       hash <- IO.fromEither(md5Hash(password))
-    } yield expect(hash == expected)
+    } yield expect(hash === expected)
   }
 
 }

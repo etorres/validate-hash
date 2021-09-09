@@ -3,10 +3,15 @@ package domain
 
 import domain.user._
 
+import cats.Eq
 import enumeratum._
 
 object access {
   final case class AccessDecision(userName: UserName, access: Access)
+
+  object AccessDecision {
+    implicit def eq: Eq[AccessDecision] = Eq.fromUniversalEquals
+  }
 
   sealed trait Access extends EnumEntry with Product with Serializable
 
