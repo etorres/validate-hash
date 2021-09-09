@@ -40,10 +40,10 @@ object ValidateAccess {
     vault: Vault[F],
     hashFunction: Password[ClearText] => Either[InvalidPassword, Password[CipherText]]
   ): ValidateAccess[F] = {
-    def validated(password: Password[ClearText])(f: Password[CipherText] => F[Access]) = {
-      val F = Sync[F]
+    val F = Sync[F]
+
+    def validated(password: Password[ClearText])(f: Password[CipherText] => F[Access]) =
       F.fromEither(hashFunction(password)).flatMap(f)
-    }
 
     (userName: UserName, password: Password[ClearText]) =>
       validated(password) { actualHash =>
