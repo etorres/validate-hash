@@ -19,7 +19,6 @@ import cats._
 import cats.data._
 import cats.derived._
 import cats.effect._
-import cats.effect.concurrent.Ref
 import cats.implicits._
 import org.scalacheck.cats.implicits._
 import weaver._

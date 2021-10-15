@@ -7,8 +7,8 @@ import domain.user._
 import domain.vault._
 
 import cats.effect._
-import cats.effect.concurrent.Ref
 import cats.implicits._
+import cats.effect.Ref
 
 final case class VaultState(users: Map[UserName, (Password[ClearText], Password[CipherText])])
 

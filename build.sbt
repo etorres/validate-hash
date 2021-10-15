@@ -14,13 +14,13 @@ ThisBuild / idePackagePrefix := Some("es.eriktorr.validate_hash")
 Global / excludeLintKeys += idePackagePrefix
 
 val catsCoreVersion = "2.6.1"
-val catsEffectsVersion = "2.5.3"
+val catsEffectsVersion = "3.2.9"
 val catsScalacheckVersion = "0.3.1"
 val enumeratumVersion = "1.7.0"
 val kittensVersion = "2.3.2"
 val newtypeVersion = "0.4.4"
 val refinedVersion = "0.9.27"
-val weaverVersion = "0.6.6"
+val weaverVersion = "0.7.6"
 
 ThisBuild / libraryDependencies ++= Seq(
   compilerPlugin("org.typelevel" %% "kind-projector" % "0.13.2" cross CrossVersion.full),
