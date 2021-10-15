@@ -11,8 +11,10 @@ import eu.timepit.refined.types.all._
 import io.estatico.newtype._
 import io.estatico.newtype.macros.newtype
 import io.estatico.newtype.ops._
+import org.tpolecat.typename.{typeName, TypeName}
 
 import java.nio.charset.StandardCharsets
+import scala.reflect.runtime.universe.{typeOf, TypeTag}
 
 object password {
   @newtype class Password[A <: Password.Format](val unPassword: NonEmptyString) {
@@ -28,11 +30,35 @@ object password {
     implicit def ev[A <: Password.Format, B]: Coercible[B, Password[A]] =
       Coercible.instance[B, Password[A]]
 
-    def fromString[A <: Password.Format](str: String): Either[InvalidPassword, Password[A]] =
-      refineV[NonEmpty](str) match {
-        case Left(_) => InvalidPassword("Password cannot be empty").asLeft
-        case Right(refinedStr) => refinedStr.coerce[Password[A]].asRight
-      }
+    def fromString[A <: Password.Format](
+      str: String
+    )(implicit ev: TypeName[A]): Either[InvalidPassword, Password[A]] = ev.value match {
+      case t if t == typeName[ClearText] =>
+        refineV[NonEmpty](str) match {
+          case Left(_) => InvalidPassword("Password cannot be empty").asLeft
+          case Right(refinedStr) => refinedStr.coerce[Password[A]].asRight
+        }
+      case t if t == typeName[CipherText] =>
+        if (!"^([a-f0-9]{32})$".r.matches(str))
+          InvalidPassword("Expected a base16 text of length 32").asLeft
+        else str.coerce[Password[A]].asRight
+      case _ => InvalidPassword("Unknown type").asLeft
+    }
+
+    def fromString2[A <: Password.Format](
+      str: String
+    )(implicit tag: TypeTag[A]): Either[InvalidPassword, Password[A]] = tag.tpe match {
+      case t if t =:= typeOf[ClearText] =>
+        refineV[NonEmpty](str) match {
+          case Left(_) => InvalidPassword("Password cannot be empty").asLeft
+          case Right(refinedStr) => refinedStr.coerce[Password[A]].asRight
+        }
+      case t if t =:= typeOf[CipherText] =>
+        if (!"^([a-f0-9]{32})$".r.matches(str))
+          InvalidPassword("Expected a base16 text of length 32").asLeft
+        else str.coerce[Password[A]].asRight
+      case _ => InvalidPassword("Unknown type").asLeft
+    }
 
     implicit def eqPassword[A <: Password.Format]: Eq[Password[A]] = Eq.fromUniversalEquals
     implicit def showPassword[A <: Password.Format]: Show[Password[A]] = Show.show(_.toString)

@@ -21,7 +21,6 @@ import cats.derived._
 import cats.effect._
 import cats.effect.concurrent.Ref
 import cats.implicits._
-import org.scalacheck._
 import org.scalacheck.cats.implicits._
 import weaver._
 import weaver.scalacheck._
@@ -40,23 +39,19 @@ object ValidateAccessSuite extends SimpleIOSuite with Checkers {
   }
 
   private[this] val validPasswordGen = passwordGen(md5Hash)
+
+  @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
   private[this] val invalidPasswordGen = passwordGen((password: Password[ClearText]) =>
-    Password.fromString[CipherText](password.unPassword.value)
+    md5Hash(Password.fromString[ClearText](password.unPassword.value + "__").toOption.get)
   )
 
   private[this] val gen = for {
     userNames <- distinctUserNameGen(7)
     (grantedUserNames, otherUserNames) = userNames.splitAt(3)
     (forbiddenUserNames, invalidUserNames) = otherUserNames.splitAt(2)
-    grantedUsers <- grantedUserNames.traverse { userName =>
-      userNameWithPasswordGen(Gen.const(userName), validPasswordGen)
-    }
-    forbiddenUsers <- forbiddenUserNames.traverse { userName =>
-      userNameWithPasswordGen(Gen.const(userName), invalidPasswordGen)
-    }
-    invalidUser <- invalidUserNames.traverse { userName =>
-      userNameWithPasswordGen(Gen.const(userName), validPasswordGen)
-    }
+    grantedUsers <- grantedUserNames.traverse(userNameWithPasswordGen(_, validPasswordGen))
+    forbiddenUsers <- forbiddenUserNames.traverse(userNameWithPasswordGen(_, invalidPasswordGen))
+    invalidUser <- invalidUserNames.traverse(userNameWithPasswordGen(_, validPasswordGen))
   } yield TestCase(
     grantedUsers = NonEmptyList.fromListUnsafe(grantedUsers),
     forbiddenUsers = NonEmptyList.fromListUnsafe(forbiddenUsers),
@@ -77,8 +72,7 @@ object ValidateAccessSuite extends SimpleIOSuite with Checkers {
           validateAccess.grantAccessIdentifiedWith(userName, password)
       }
       expected = targetUsers.map {
-        case (userName, _) =>
-          AccessDecision(userName, access)
+        case (userName, _) => AccessDecision(userName, access)
       }
     } yield expect(result === expected)
 

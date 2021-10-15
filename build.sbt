@@ -27,6 +27,7 @@ ThisBuild / libraryDependencies ++= Seq(
   compilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1" cross CrossVersion.binary),
   "org.typelevel" %% "cats-core" % catsCoreVersion,
   "org.typelevel" %% "cats-effect" % catsEffectsVersion,
+  "org.tpolecat" %% "typename" % "1.0.0",
   "io.chrisdavenport" %% "cats-scalacheck" % catsScalacheckVersion % Test,
   "com.beachape" %% "enumeratum-cats" % enumeratumVersion,
   "org.typelevel" %% "kittens" % kittensVersion,
