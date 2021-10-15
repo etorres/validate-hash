@@ -14,6 +14,7 @@ import io.estatico.newtype.ops._
 import org.tpolecat.typename.{typeName, TypeName}
 
 import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
 import scala.reflect.runtime.universe.{typeOf, TypeTag}
 
 object password {
@@ -45,7 +46,7 @@ object password {
       case _ => InvalidPassword("Unknown type").asLeft
     }
 
-    def fromString2[A <: Password.Format](
+    def fromStringWithReflection[A <: Password.Format](
       str: String
     )(implicit tag: TypeTag[A]): Either[InvalidPassword, Password[A]] = tag.tpe match {
       case t if t =:= typeOf[ClearText] =>
@@ -59,6 +60,16 @@ object password {
         else str.coerce[Password[A]].asRight
       case _ => InvalidPassword("Unknown type").asLeft
     }
+
+    def encrypted(password: Password[ClearText]): Either[InvalidPassword, Password[CipherText]] =
+      Password.fromString[CipherText](
+        MessageDigest
+          .getInstance("MD5")
+          .digest(password.getBytes)
+          .map(0xFF & _)
+          .map("%02x".format(_))
+          .foldLeft("")(_ + _)
+      )
 
     implicit def eqPassword[A <: Password.Format]: Eq[Password[A]] = Eq.fromUniversalEquals
     implicit def showPassword[A <: Password.Format]: Show[Password[A]] = Show.show(_.toString)

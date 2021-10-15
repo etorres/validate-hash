@@ -14,6 +14,7 @@ import org.scalacheck.Gen
 import org.scalacheck.cats.implicits._
 
 object ValidateAccessGenerator {
+
   type UserNameWithPassword = (UserName, (Password[ClearText], Password[CipherText]))
 
   @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))

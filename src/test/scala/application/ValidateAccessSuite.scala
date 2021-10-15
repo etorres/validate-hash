@@ -3,7 +3,6 @@ package application
 
 import domain.access.Access._
 import domain.access._
-import domain.hash.md5Hash
 import domain.password.Password._
 import domain.password._
 import domain.user._
@@ -37,11 +36,13 @@ object ValidateAccessSuite extends SimpleIOSuite with Checkers {
     implicit val showTestCase: Show[TestCase] = semiauto.show
   }
 
-  private[this] val validPasswordGen = passwordGen(md5Hash)
+  private[this] val validPasswordGen = passwordGen(Password.encrypted)
 
   @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
   private[this] val invalidPasswordGen = passwordGen((password: Password[ClearText]) =>
-    md5Hash(Password.fromString[ClearText](password.unPassword.value + "__").toOption.get)
+    Password.encrypted(
+      Password.fromString[ClearText](password.unPassword.value + "__").toOption.get
+    )
   )
 
   private[this] val gen = for {
@@ -65,7 +66,8 @@ object ValidateAccessSuite extends SimpleIOSuite with Checkers {
   ): IO[Expectations] =
     for {
       vaultStateRef <- Ref.of[IO, VaultState](VaultState(allValidUsers))
-      validateAccess = ValidateAccess.impl[IO](FakeVault.impl[IO](vaultStateRef), md5Hash)
+      validateAccess = ValidateAccess
+        .impl[IO](FakeVault.impl[IO](vaultStateRef), Password.encrypted)
       result <- targetUsers.traverse {
         case (userName, (password, _)) =>
           validateAccess.grantAccessIdentifiedWith(userName, password)
