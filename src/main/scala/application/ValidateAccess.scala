@@ -24,19 +24,17 @@ object ValidateAccess {
     vault: Vault[F],
     hashFunction: Password[ClearText] => Either[InvalidPassword, Password[CipherText]]
   ): ValidateAccess[F] =
-    (userName: UserName, password: Password[ClearText]) => {
-      val F = Sync[F]
+    (userName: UserName, password: Password[ClearText]) =>
       for {
-        cipherText <- F.fromEither(hashFunction(password))
+        cipherText <- Sync[F].fromEither(hashFunction(password))
         maybeHash <- vault.passwordFor(userName)
         access = maybeHash match {
           case Some(expectedHash) => if (expectedHash === cipherText) Granted else Forbidden
           case None => Forbidden
         }
       } yield AccessDecision(userName, access)
-    }
 
-  def impl2[F[_]: Sync](
+  def desugaredImpl[F[_]: Sync](
     vault: Vault[F],
     hashFunction: Password[ClearText] => Either[InvalidPassword, Password[CipherText]]
   ): ValidateAccess[F] = {
