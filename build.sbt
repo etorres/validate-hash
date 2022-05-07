@@ -1,88 +1,58 @@
-import org.scalafmt.sbt.ScalafmtPlugin.autoImport.scalafmtOnCompile
-import sbt.Keys._
-import sbt._
-import wartremover.Wart
-import wartremover.WartRemover.autoImport._
-
-name := "validate-hash"
-
 ThisBuild / organization := "es.eriktorr"
 ThisBuild / version := "1.0.0"
-ThisBuild / scalaVersion := "2.13.6"
-
 ThisBuild / idePackagePrefix := Some("es.eriktorr.validate_hash")
 Global / excludeLintKeys += idePackagePrefix
 
-val catsCoreVersion = "2.6.1"
-val catsEffectsVersion = "3.2.9"
-val catsScalacheckVersion = "0.3.1"
-val enumeratumVersion = "1.7.0"
-val kittensVersion = "2.3.2"
-val newtypeVersion = "0.4.4"
-val refinedVersion = "0.9.27"
-val weaverVersion = "0.7.6"
+ThisBuild / scalaVersion := "3.1.2"
 
-ThisBuild / libraryDependencies ++= Seq(
-  compilerPlugin("org.typelevel" %% "kind-projector" % "0.13.2" cross CrossVersion.full),
-  compilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1" cross CrossVersion.binary),
-  "org.typelevel" %% "cats-core" % catsCoreVersion,
-  "org.typelevel" %% "cats-effect" % catsEffectsVersion,
-  "org.tpolecat" %% "typename" % "1.0.0",
-  "io.chrisdavenport" %% "cats-scalacheck" % catsScalacheckVersion % Test,
-  "com.beachape" %% "enumeratum-cats" % enumeratumVersion,
-  "org.typelevel" %% "kittens" % kittensVersion,
-  "io.estatico" %% "newtype" % newtypeVersion,
-  "eu.timepit" %% "refined" % refinedVersion,
-  "eu.timepit" %% "refined-scalacheck" % refinedVersion % Test,
-  "com.disneystreaming" %% "weaver-cats" % weaverVersion % Test,
-  "com.disneystreaming" %% "weaver-scalacheck" % weaverVersion % Test
+Global / cancelable := true
+Global / fork := true
+Global / onChangedBuildSource := ReloadOnSourceChanges
+
+Compile / compile / wartremoverErrors ++= Warts.unsafe.filter(
+  !List(Wart.DefaultArguments, Wart.OptionPartial, Wart.Null).contains(_),
+)
+Test / compile / wartremoverErrors ++= Warts.unsafe.filter(
+  !List(Wart.DefaultArguments, Wart.OptionPartial).contains(_),
 )
 
-ThisBuild / libraryDependencySchemes ++= Seq(
-  "org.typelevel" %% "cats-core" % VersionScheme.EarlySemVer,
-  "org.typelevel" %% "cats-effect" % VersionScheme.EarlySemVer,
-  "co.fs2" %% "f2s-core" % VersionScheme.EarlySemVer,
-  "org.scalacheck" %% "scalacheck" % VersionScheme.EarlySemVer
-)
+ThisBuild / semanticdbEnabled := true
+ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 
-ThisBuild / scalacOptions ++= Seq(
-  "-encoding",
-  "utf8",
+scalacOptions ++= Seq(
   "-Xfatal-warnings",
-  "-Xlint",
-  "-Xlint:-byname-implicit",
-  "-Ymacro-annotations",
   "-deprecation",
+  "-feature",
   "-unchecked",
-  "-language:higherKinds",
-  "-language:implicitConversions",
-  "-feature"
+  "-Yexplicit-nulls", // https://docs.scala-lang.org/scala3/reference/other-new-features/explicit-nulls.html
+  "-Ysafe-init", // https://docs.scala-lang.org/scala3/reference/other-new-features/safe-initialization.html
 )
 
-ThisBuild / javacOptions ++= Seq(
-  "-g:none",
-  "-source",
-  "11",
-  "-target",
-  "11",
-  "-encoding",
-  "UTF-8"
+lazy val root = (project in file("."))
+  .enablePlugins(JavaAppPackaging)
+  .settings(
+    name := "validate-hash",
+    Universal / maintainer := "https://eriktorr.es",
+    Compile / mainClass := Some("es.eriktorr.validate_hash.ValidateHashApp"),
+    libraryDependencies ++= Seq(
+      "io.chrisdavenport" %% "cats-scalacheck" % "0.3.1" % Test,
+      "org.scalameta" %% "munit" % "0.7.29" % Test,
+      "org.scalameta" %% "munit-scalacheck" % "0.7.29" % Test,
+      "org.tpolecat" %% "typename" % "1.0.0",
+      "org.typelevel" %% "cats-effect" % "3.3.11",
+      "org.typelevel" %% "cats-effect-kernel" % "3.3.11",
+      "org.typelevel" %% "munit-cats-effect-3" % "1.0.7" % Test,
+      "org.typelevel" %% "scalacheck-effect" % "1.0.4" % Test,
+      "org.typelevel" %% "scalacheck-effect-munit" % "1.0.4" % Test,
+    ),
+    onLoadMessage := {
+      s"""Custom tasks:
+         |check - run all project checks
+         |""".stripMargin
+    },
+  )
+
+addCommandAlias(
+  "check",
+  "; undeclaredCompileDependenciesTest; unusedCompileDependenciesTest; scalafixAll; scalafmtSbtCheck; scalafmtCheckAll",
 )
-
-ThisBuild / scalafmtOnCompile := true
-
-val warts: Seq[Wart] = Warts.allBut(
-  Wart.Any,
-  Wart.Nothing,
-  Wart.Equals,
-  Wart.DefaultArguments,
-  Wart.Overloading,
-  Wart.ToString,
-  Wart.ImplicitParameter,
-  Wart.ImplicitConversion // @newtype
-)
-
-Compile / compile / wartremoverErrors ++= warts
-Test / compile / wartremoverErrors ++= warts
-
-ThisBuild / testFrameworks += new TestFramework("weaver.framework.CatsEffect")
